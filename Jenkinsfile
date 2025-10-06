@@ -2,10 +2,30 @@ pipeline {
     agent any
 
     stages {
+        /*
+
+        stage('Build') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh '''
+                    ls -la
+                    node --version
+                    npm --version
+                    npm ci
+                    npm run build
+                    ls -la
+                '''
+            }
+        }
+        */
 
         stage('Tests') {
             parallel {
-
                 stage('Unit tests') {
                     agent {
                         docker {
@@ -14,23 +34,14 @@ pipeline {
                         }
                     }
 
-                    environment {
-                        // Tell jest-junit where to put the report
-                        JEST_JUNIT_OUTPUT_DIR = 'jest-results'
-                        JEST_JUNIT_OUTPUT_NAME = 'junit.xml'
-                    }
-
                     steps {
                         sh '''
-                            echo "Running Unit Tests..."
-                            npm ci
+                            #test -f build/index.html
                             npm test
                         '''
                     }
-
                     post {
                         always {
-                            echo "Publishing JUnit test report..."
                             junit 'jest-results/junit.xml'
                         }
                     }
@@ -46,26 +57,16 @@ pipeline {
 
                     steps {
                         sh '''
-                            echo "Running E2E Tests..."
                             npm install serve
                             node_modules/.bin/serve -s build &
                             sleep 10
-                            npx playwright test --reporter=html
+                            npx playwright test  --reporter=html
                         '''
                     }
 
                     post {
                         always {
-                            echo "Publishing Playwright HTML report..."
-                            publishHTML([
-                                allowMissing: false,
-                                alwaysLinkToLastBuild: false,
-                                keepAll: false,
-                                reportDir: 'playwright-report',
-                                reportFiles: 'index.html',
-                                reportName: 'Playwright HTML Report',
-                                useWrapperFileDirectly: true
-                            ])
+                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
                         }
                     }
                 }
