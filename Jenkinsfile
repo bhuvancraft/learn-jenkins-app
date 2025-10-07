@@ -38,9 +38,9 @@ pipeline {
                     steps {
                         sh '''
                             echo "🧪 Running Jest Unit Tests..."
-                            mkdir -p /test-results
+                            mkdir -p test-results
                             npm ci
-                            JEST_JUNIT_OUTPUT_DIR=/test-results npm test -- --watchAll=false
+                            JEST_JUNIT_OUTPUT_DIR=test-results npm test -- --watchAll=false
                         '''
                     }
                     post {
@@ -103,4 +103,10 @@ pipeline {
 
     post {
         success {
-            echo "
+            echo "🎉 CI/CD pipeline completed successfully!"
+        }
+        failure {
+            echo "❌ Pipeline failed! Check the stage logs above."
+        }
+    }
+}
